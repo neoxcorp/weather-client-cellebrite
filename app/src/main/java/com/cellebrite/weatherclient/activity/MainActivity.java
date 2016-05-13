@@ -1,5 +1,6 @@
 package com.cellebrite.weatherclient.activity;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -8,20 +9,12 @@ import android.support.v7.widget.RecyclerView;
 import com.cellebrite.weatherclient.R;
 import com.cellebrite.weatherclient.adapter.DataAdapter;
 import com.cellebrite.weatherclient.model.DataItem;
-import com.cellebrite.weatherclient.rest.api.GetWeatherApi;
-import com.cellebrite.weatherclient.rest.model.WeatherData;
-import com.cellebrite.weatherclient.util.AppConst;
-import com.cellebrite.weatherclient.util.DataManager;
-import com.cellebrite.weatherclient.util.LogTag;
+import com.cellebrite.weatherclient.service.ServiceGetWeatherData;
+import com.cellebrite.weatherclient.util.BusProvider;
+import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,7 +31,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(LAYOUT);
 
         init();
-        getData();
+        Intent service = new Intent(MainActivity.this, ServiceGetWeatherData.class);
+        startService(service);
     }
 
     private void init() {
@@ -57,30 +51,20 @@ public class MainActivity extends AppCompatActivity {
         dataAdapter.notifyDataSetChanged();
     }
 
-    public void getData() {
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(AppConst.BASE_ENDPOINT)
-                .addConverterFactory(GsonConverterFactory.create()).build();
-        GetWeatherApi service = retrofit.create(GetWeatherApi.class);
-        Call<WeatherData> call1 = service.currentWeather(DataManager.getWeatherParam());
-        call1.enqueue(new Callback<WeatherData>() {
-            @Override
-            public void onResponse(Call<WeatherData> call, Response<WeatherData> response) {
-                LogTag.v("onResponse: " + response.body().getWeather().get(0).getDescription());
-                DataItem di = new DataItem();
-                di.weatherDescription = response.body().getWeather().get(0).getDescription();
-                di.iconSource = DataManager.getIconSource(response.body()
-                        .getWeather().get(0).getIcon());
-                di.temperature = response.body().getMain().getTemp().intValue();
-                di.humidity = response.body().getMain().getHumidity();
-                di.dt = response.body().getDt();
-                di.save();
-                upDateRv();
-            }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        BusProvider.getInstance().register(this);
+    }
 
-            @Override
-            public void onFailure(Call<WeatherData> call, Throwable t) {
-                LogTag.v("onFailure: " + t.getMessage());
-            }
-        });
+    @Override
+    protected void onStop() {
+        BusProvider.getInstance().unregister(this);
+        super.onStop();
+    }
+
+    @Subscribe
+    public void neeedUpdate(Object o) {
+        upDateRv();
     }
 }

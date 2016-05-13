@@ -12,34 +12,20 @@
 
         <ImageView
             android:id="@+id/iconIv"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:scaleType="centerCrop"
             android:src="@drawable/def" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/degreeTv"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/temperature"
-                android:layout_margin="4dp"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/degreeTv"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="20"
-                android:gravity="center_horizontal"
-                android:layout_margin="4dp"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
+            android:layout_height="match_parent"
+            android:text="20"
+            android:gravity="center"
+            android:layout_margin="4dp"
+            android:textSize="24sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

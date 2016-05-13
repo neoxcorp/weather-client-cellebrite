@@ -31,7 +31,8 @@ public class DataItem extends Model {
     public static List<DataItem> getAllData() {
         return new Select()
                 .from(DataItem.class)
-                .orderBy("dt" + " ASC")
+                //.orderBy("dt" + " ASC")
+                .orderBy("dt" + " DESC")
                 .execute();
     }
 }
