@@ -2,8 +2,8 @@ package com.cellebrite.weatherclient.service;
 
 import android.app.Service;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.IBinder;
+
 import com.cellebrite.weatherclient.model.DataItem;
 import com.cellebrite.weatherclient.rest.api.GetWeatherApi;
 import com.cellebrite.weatherclient.rest.model.WeatherData;
@@ -11,6 +11,9 @@ import com.cellebrite.weatherclient.util.AppConst;
 import com.cellebrite.weatherclient.util.BusProvider;
 import com.cellebrite.weatherclient.util.DataManager;
 import com.cellebrite.weatherclient.util.LogTag;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -22,28 +25,20 @@ public class ServiceGetWeatherData extends Service {
 
     private boolean isWork = false;
 
-    private Retrofit retrofit;
-    private GetWeatherApi service;
-    private Call<WeatherData> call;
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (!isWork) {
             isWork = true;
-            retrofit = new Retrofit.Builder().baseUrl(AppConst.BASE_ENDPOINT)
-                    .addConverterFactory(GsonConverterFactory.create()).build();
-            service = retrofit.create(GetWeatherApi.class);
-            call = service.currentWeather(DataManager.getWeatherParam());
 
             getData();
 
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
+            Timer repeatTask = new Timer();
+            repeatTask.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
                     getData();
                 }
-            }, 600 * 1000); // 10 minutes time in milliseconds
+            }, 0, 10 * 60 * 1000); // 10 minutes time in milliseconds
         }
         // If we get killed, after returning from here, restart
         return START_STICKY;
@@ -56,6 +51,14 @@ public class ServiceGetWeatherData extends Service {
 
 
     public void getData() {
+        Retrofit retrofit;
+        GetWeatherApi service;
+        Call<WeatherData> call;
+        retrofit = new Retrofit.Builder().baseUrl(AppConst.BASE_ENDPOINT)
+                .addConverterFactory(GsonConverterFactory.create()).build();
+        service = retrofit.create(GetWeatherApi.class);
+        call = service.currentWeather(DataManager.getWeatherParam());
+
         call.enqueue(new Callback<WeatherData>() {
             @Override
             public void onResponse(Call<WeatherData> call, Response<WeatherData> response) {
@@ -78,4 +81,6 @@ public class ServiceGetWeatherData extends Service {
             }
         });
     }
+
+
 }
